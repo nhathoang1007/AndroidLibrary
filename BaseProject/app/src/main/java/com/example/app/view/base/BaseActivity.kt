@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
 import com.example.common.model.error.ErrorMessage
 import com.example.common.viewmodel.base.IViewModel
 import dagger.android.support.DaggerAppCompatActivity
@@ -24,6 +25,7 @@ abstract class BaseActivity<T : IViewModel> : DaggerAppCompatActivity() {
         setContentView(getLayoutRes())
         lifecycle.addObserver(viewModel as LifecycleObserver)
         initView()
+        initViewModel()
     }
 
     /**
@@ -39,18 +41,32 @@ abstract class BaseActivity<T : IViewModel> : DaggerAppCompatActivity() {
      * or anything else
      */
     protected open fun initView() {
-        Log.e("AAAAAAA", "Hello world")
+        Log.e("BaseActivity", "Init View Here")
     }
 
-    protected fun showLoadingDialog() {
-        Toast.makeText(this, "Dialog Showing...", Toast.LENGTH_LONG).show()
+    protected open fun initViewModel() {
+        Log.e("BaseActivity", "Init View Model Here")
+        viewModel.isLoading.observe(this, Observer<Boolean> {
+            if (it) {
+                showLoadingDialog()
+            } else {
+                dismissLoadingDialog()
+            }
+        })
+        viewModel.error.observe(this, Observer<ErrorMessage> {
+            handleError(it)
+        })
     }
 
-    protected fun dismissLoadingDialog() {
-        Toast.makeText(this, "Dialog Dismissed...", Toast.LENGTH_LONG).show()
+    protected open fun showLoadingDialog() {
+        Toast.makeText(this, "Dialog Showing...", Toast.LENGTH_SHORT).show()
     }
 
-    protected fun handleError(errorMessage: ErrorMessage) {
+    protected open fun dismissLoadingDialog() {
+        Toast.makeText(this, "Dialog Dismissed...", Toast.LENGTH_SHORT).show()
+    }
+
+    protected open  fun handleError(errorMessage: ErrorMessage) {
         Toast.makeText(this, "Error here.....", Toast.LENGTH_LONG).show()
     }
 }

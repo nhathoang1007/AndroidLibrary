@@ -7,7 +7,12 @@ import java.net.UnknownHostException
 /**
  * Created by jason on 02/10/2019.
  */
-class ErrorMessage {
+class ErrorMessage(t: Throwable? = null) {
+    init {
+        t?.apply {
+            onApiFailure(this)
+        }
+    }
 
     private var error: CommonError = CommonError.UNKNOWN
     private var message: String = ""

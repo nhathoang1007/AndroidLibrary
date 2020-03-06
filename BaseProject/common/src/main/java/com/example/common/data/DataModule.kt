@@ -24,9 +24,9 @@ class DataModule {
         ).build()
     }
 
-    @Singleton
-    @Provides
-    fun providerDatabaseHelper(manager: DatabaseManager): IDatabaseHelper {
-        return DatabaseImpl(manager)
-    }
+//    @Singleton
+//    @Provides
+//    fun providerDatabaseHelper(manager: DatabaseManager): IDatabaseHelper {
+//        return DatabaseImpl(manager)
+//    }
 }

@@ -14,9 +14,9 @@ abstract class BaseViewModel protected constructor(repository: BaseRepository) :
 
     var disposable = CompositeDisposable()
 
-    override var isLoading: MutableLiveData<Boolean> = repository.isLoading()
+    override var isLoading: MutableLiveData<Boolean> = MutableLiveData()
 
-    override var error: MutableLiveData<ErrorMessage> = repository.getError()
+    override var error: MutableLiveData<ErrorMessage> = MutableLiveData()
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     override fun onCreate() {

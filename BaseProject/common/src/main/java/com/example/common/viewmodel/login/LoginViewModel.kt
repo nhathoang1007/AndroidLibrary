@@ -1,6 +1,8 @@
 package com.example.common.viewmodel.login
 
 import android.os.Handler
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.common.data.network.SchedulerProvider
 import com.example.common.model.error.ErrorMessage
 import com.example.common.repository.login.LoginRepository
@@ -17,26 +19,27 @@ class LoginViewModel @Inject constructor(
     BaseViewModel(repository),
     ILoginViewModel {
 
-    override fun login(email: String, password: String) {
-        repository.setLoading(true)
-        Handler().postDelayed({
-            disposable.add(
-                repository.login(
-                    email,
-                    password
-                ).compose(schedulerProvider.getObservableScheduler())
-                    .subscribe({
-                        repository.setError(ErrorMessage())
-                        repository.setLoading(false)
-                    }, {
-                        it.printStackTrace()
-                        val errorMessage = ErrorMessage()
-                        errorMessage.onApiFailure(it)
-                        repository.setError(errorMessage)
-                        repository.setLoading(false)
-                    })
-            )
-        }, 10000)
+    private val _isLoginSuccess = MutableLiveData<Boolean>()
+    override val isLoginSuccess: LiveData<Boolean>
+        get() = _isLoginSuccess
 
+    override fun login(email: String, password: String) {
+        disposable.add(
+            repository.login(
+                email,
+                password
+            ).compose(schedulerProvider.getObservableScheduler())
+                .doOnSubscribe {
+                    isLoading.postValue(true)
+                }
+                .doFinally {
+                    isLoading.postValue(false)
+                }
+                .subscribe({
+                    _isLoginSuccess.postValue(true)
+                }, {
+                    error.postValue(ErrorMessage(it))
+                })
+        )
     }
 }

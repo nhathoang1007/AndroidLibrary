@@ -11,6 +11,6 @@ import retrofit2.http.POST
  */
 interface Apis {
 
-    @POST("user/login")
+    @POST("ninja/login")
     fun login(@Body jsonObject: JsonObject): Observable<String>
 }

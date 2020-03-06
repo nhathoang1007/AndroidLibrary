@@ -1,10 +1,12 @@
 package com.example.common.data.network
 
+import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -19,6 +21,14 @@ import javax.inject.Singleton
 @Module
 class NetworkModule {
 
+    companion object {
+
+        private const val CACHE_SIZE = 10 * 1024 * 1024
+        private const val CONNECT_TIMEOUT = 180 // ms
+        private const val READ_TIMEOUT = 180 // ms
+        private const val WRITE_TIMEOUT = 180 // ms
+    }
+
     @Provides
     @Singleton
     fun provideGson(): Gson {
@@ -27,26 +37,30 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient =
+    fun provideOkHttpClient(context: Context): OkHttpClient =
         OkHttpClient().newBuilder()
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .addInterceptor { chain ->
-                val originalReq = chain.request()
-                val request = originalReq.newBuilder()
-                    .build()
-                chain.proceed(request)
+            .cache(Cache(context.cacheDir, CACHE_SIZE.toLong()))
+            .addInterceptor {
+                val request = it.request()
+                val builder = request.newBuilder()
+                    .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                it.proceed(builder.build())
+
             }
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
+            .connectTimeout(CONNECT_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .readTimeout(READ_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .writeTimeout(WRITE_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .build()
 
     @Provides
     @Singleton
     fun provideRestAdapter(client: OkHttpClient, gson: Gson): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://apis.foodexplorer.vn/")
+            .baseUrl("http://52.221.204.195/")
             .addConverterFactory(GsonConverterFactory.create(gson))
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .client(client)
